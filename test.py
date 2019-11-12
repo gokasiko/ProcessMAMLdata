@@ -2,7 +2,7 @@
 import json
 import string
 from functools import cmp_to_key
-
+import random
 typelist = ['Simple Question (Direct)_',
             'Verification (Boolean) (All)_',
             'Quantitative Reasoning (Count) (All)_',
@@ -26,10 +26,16 @@ class Retriever():
             topNList = sort_candidate if len(sort_candidate) <= N else sort_candidate[0:N]
 
             if len(topNList) < N:
+                print(len(topNList), " found of ", N)
                 if key_weak in self.dict944k_weak:
-                    weak_list =
-
-            # print(len(topNList))
+                    weak_list = self.dict944k_weak[key_weak]
+                    sort_candidate_weak = sorted(weak_list, key=cmp_to_key(self.MoreSimilarity))
+                    for c_weak in sort_candidate_weak:
+                        if len(topNList) == N:
+                            break
+                        if c_weak not in topNList:
+                            topNList.append(c_weak)
+                            print(len(topNList))
             return topNList
 
     def MoreSimilarity(self, sentence1 , sentence2):
@@ -53,6 +59,12 @@ retriever =  Retriever()
 result_dict = {}
 with open("RL_train_TR.question", "r", encoding='UTF-8') as questions:
     load_dict = json.load(questions)
+    keys = list(load_dict.keys())
+    random.shuffle(keys)
+
+    shuffled_load_dict = dict()
+    for key in keys:
+        shuffled_load_dict.update({key: load_dict[key]})
 
     q_topK_map = {}
 
@@ -61,7 +73,7 @@ with open("RL_train_TR.question", "r", encoding='UTF-8') as questions:
     for i in range(0, 6):
         current_type = i
         current_type_count = 0
-        for key, value in load_dict.items():
+        for key, value in shuffled_load_dict.items():
             entity_count = len(value['entity'])
             relation_count = len(value['relation'])
             type_count = len(value['type'])
@@ -70,9 +82,9 @@ with open("RL_train_TR.question", "r", encoding='UTF-8') as questions:
             relation_str = '_'.join(relation_list)
 
             type_name = typelist[0]
-            for type in typelist:
-                if type in key:
-                    type_name = type
+            for typei in typelist:
+                if typei in key:
+                    type_name = typei
             if type_name == typelist[current_type]:
                 current_type_count += 1
 
@@ -82,13 +94,15 @@ with open("RL_train_TR.question", "r", encoding='UTF-8') as questions:
                     key_name = '{0}{1}_{2}_{3}_{4}'.format(type_name, entity_count, relation_count, type_count,
                                                            relation_str)
                     key_weak = '{0}{1}_{2}_{3}'.format(type_name, entity_count, relation_count, type_count)
-                    topNlist = retriever.Retrieve(5, key_name, key_weak, question)
+
+                    topNlist = retriever.Retrieve(20, key_name, key_weak, question)
+
                     key_question = key + ' : ' + question
                     item_key = {key_question: topNlist}
                     q_topK_map.update(item_key)
 
 
-    with open('topN.json', 'w', encoding='utf-8') as f:
+    with open('top20_N.json', 'w', encoding='utf-8') as f:
         json.dump(q_topK_map, f, indent=4)
 
 
