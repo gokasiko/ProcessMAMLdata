@@ -43,7 +43,12 @@ class Retriever():
             return topNList, False
 
     def MoreSimilarity(self, sentence1, sentence2):
-        return self.Calculatesimilarity(sentence1, question) > self.Calculatesimilarity(sentence2, question)
+        sim1 = self.Calculatesimilarity(sentence1, question)
+        sim2 = self.Calculatesimilarity(sentence2, question)
+        print(question, sentence1, sim1)
+        print(question, sentence2, sim2)
+        similarity_result = sim1 > sim2
+        return similarity_result
 
     def Calculatesimilarity(self, sentence1, sentence2):
         trantab = str.maketrans({key: None for key in string.punctuation})
