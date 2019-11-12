@@ -25,21 +25,25 @@ class Retriever():
             sort_candidate = sorted(candidate_list, key=cmp_to_key(self.MoreSimilarity))
             topNList = sort_candidate if len(sort_candidate) <= N else sort_candidate[0:N]
 
-            if len(topNList) < N:
-                print(len(topNList), " found of ", N)
-                if key_weak in self.dict944k_weak:
-                    weak_list = self.dict944k_weak[key_weak]
-                    sort_candidate_weak = sorted(weak_list, key=cmp_to_key(self.MoreSimilarity))
-                    for c_weak in sort_candidate_weak:
-                        if len(topNList) == N:
-                            break
-                        if c_weak not in topNList:
-                            topNList.append(c_weak)
-                            print(len(topNList))
-            return topNList
+            if len(topNList) == 1:
+                print ("1 match of 5")
+                if len(topNList) < N:
+                    print(len(topNList), " found of ", N)
+                    if key_weak in self.dict944k_weak:
+                        weak_list = self.dict944k_weak[key_weak]
+                        sort_candidate_weak = sorted(weak_list, key = cmp_to_key(self.MoreSimilarity))
+                        for c_weak in sort_candidate_weak:
+                            if len(topNList) == N:
+                                break
+                            if c_weak not in topNList:
+                                topNList.append(c_weak)
+                                print(len(topNList))
+                        if en(topNList) == N:
+                            return topNList, True
+            return topNList, False
 
-    def MoreSimilarity(self, sentence1 , sentence2):
-        return self.Calculatesimilarity(sentence1, question) < self.Calculatesimilarity(sentence2, question)
+    def MoreSimilarity(self, sentence1, sentence2):
+        return self.Calculatesimilarity(sentence1, question) > self.Calculatesimilarity(sentence2, question)
 
     def Calculatesimilarity(self, sentence1, sentence2):
         trantab = str.maketrans({key: None for key in string.punctuation})
@@ -59,12 +63,12 @@ retriever =  Retriever()
 result_dict = {}
 with open("RL_train_TR.question", "r", encoding='UTF-8') as questions:
     load_dict = json.load(questions)
-    keys = list(load_dict.keys())
-    random.shuffle(keys)
-
-    shuffled_load_dict = dict()
-    for key in keys:
-        shuffled_load_dict.update({key: load_dict[key]})
+    # keys = list(load_dict.keys())
+    # random.shuffle(keys)
+    #
+    # shuffled_load_dict = dict()
+    # for key in keys:
+    #     shuffled_load_dict.update({key: load_dict[key]})
 
     q_topK_map = {}
 
@@ -73,7 +77,8 @@ with open("RL_train_TR.question", "r", encoding='UTF-8') as questions:
     for i in range(0, 6):
         current_type = i
         current_type_count = 0
-        for key, value in shuffled_load_dict.items():
+        # for key, value in shuffled_load_dict.items():
+        for key, value in load_dict.items():
             entity_count = len(value['entity'])
             relation_count = len(value['relation'])
             type_count = len(value['type'])
@@ -95,14 +100,16 @@ with open("RL_train_TR.question", "r", encoding='UTF-8') as questions:
                                                            relation_str)
                     key_weak = '{0}{1}_{2}_{3}'.format(type_name, entity_count, relation_count, type_count)
 
-                    topNlist = retriever.Retrieve(20, key_name, key_weak, question)
+                    topNlist, result = retriever.Retrieve(5, key_name, key_weak, question)
+                    if True:
+                    # if result:
+                        # current_type_count += 1
+                        key_question = key + ' : ' + question
+                        item_key = {key_question: topNlist}
+                        q_topK_map.update(item_key)
 
-                    key_question = key + ' : ' + question
-                    item_key = {key_question: topNlist}
-                    q_topK_map.update(item_key)
 
-
-    with open('top20_N.json', 'w', encoding='utf-8') as f:
+    with open('top5_4weak.json', 'w', encoding='utf-8') as f:
         json.dump(q_topK_map, f, indent=4)
 
 
