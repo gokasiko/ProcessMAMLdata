@@ -2,6 +2,7 @@
 import json
 import string
 from functools import cmp_to_key
+import time
 import random
 typelist = ['Simple Question (Direct)_',
             'Verification (Boolean) (All)_',
@@ -19,40 +20,70 @@ class Retriever():
         with open("CSQA_result_question_type_count944k.json", "r", encoding='UTF-8') as CSQA_List_weak:
             self.dict944k_weak = json.load(CSQA_List_weak)
 
+    def takequestion(self, dict_item):
+        takequestionvalues = list(dict_item.values())[0]
+        return self.CalculatesimilarityStr(takequestionvalues, question) * (-1)
+
     def Retrieve(self, N, key_name, key_weak, question):
+        start = time.clock()
+
+        dict_candicate = self.dict944k_weak
         if key_name in self.dict944k:
             candidate_list = self.dict944k[key_name]
-            sort_candidate = sorted(candidate_list, key=cmp_to_key(self.MoreSimilarity))
+
+            sort_candidate = sorted(candidate_list, key=self.takequestion)
+            # elapsed = (time.clock() - start)
+            # print("Time used:", elapsed)
+
+            # remove the quesiton itself
+            for candidateItem in sort_candidate:
+                if list(candidateItem.values())[0] == question:
+                    sort_candidate.remove(candidateItem)
+                    break
+
             topNList = sort_candidate if len(sort_candidate) <= N else sort_candidate[0:N]
 
-            if len(topNList) == 1:
-                print ("1 match of 5")
-                if len(topNList) < N:
-                    print(len(topNList), " found of ", N)
-                    if key_weak in self.dict944k_weak:
-                        weak_list = self.dict944k_weak[key_weak]
-                        sort_candidate_weak = sorted(weak_list, key = cmp_to_key(self.MoreSimilarity))
-                        for c_weak in sort_candidate_weak:
-                            if len(topNList) == N:
-                                break
-                            if c_weak not in topNList:
-                                topNList.append(c_weak)
-                                print(len(topNList))
-                        if en(topNList) == N:
-                            return topNList, True
-            return topNList, False
+            # if don't have enough matches, search without relation match
+            if len(topNList) < N:
+                print(len(topNList), " found of ", N)
+                if key_weak in dict_candicate:
+                    weak_list = dict_candicate[key_weak]
+                    sort_candidate_weak = sorted(weak_list, key=self.takequestion)
+                    for c_weak in sort_candidate_weak:
+                        if len(topNList) == N:
+                            break
+                        if c_weak not in topNList:
+                            topNList.append(c_weak)
+                            print(len(topNList))
+            elapsed = (time.clock() - start)
+            print("Time used:", elapsed)
+            return topNList
 
     def MoreSimilarity(self, sentence1, sentence2):
+        return True
         sim1 = self.Calculatesimilarity(sentence1, question)
         sim2 = self.Calculatesimilarity(sentence2, question)
-        print(question, sentence1, sim1)
-        print(question, sentence2, sim2)
+        # print(question, sentence1, sim1)
+        # print(question, sentence2, sim2)
         similarity_result = sim1 > sim2
         return similarity_result
 
     def Calculatesimilarity(self, sentence1, sentence2):
         trantab = str.maketrans({key: None for key in string.punctuation})
         s1 = str(sentence1.values()).translate(trantab)
+        s2 = sentence2.translate(trantab)
+        list1 = s1.split(' ')
+        list2 = s2.split(' ')
+        intersec = set(list1).intersection(set(list2))
+        union = set([])
+        union.update(list1)
+        union.update(list2)
+        jaccard = float(len(intersec)) / float(len(union)) if len(union) != 0 else 0
+        return jaccard
+
+    def CalculatesimilarityStr(self, sentence1, sentence2):
+        trantab = str.maketrans({key: None for key in string.punctuation})
+        s1 = sentence1.translate(trantab)
         s2 = sentence2.translate(trantab)
         list1 = s1.split(' ')
         list2 = s2.split(' ')
@@ -105,16 +136,15 @@ with open("RL_train_TR.question", "r", encoding='UTF-8') as questions:
                                                            relation_str)
                     key_weak = '{0}{1}_{2}_{3}'.format(type_name, entity_count, relation_count, type_count)
 
-                    topNlist, result = retriever.Retrieve(5, key_name, key_weak, question)
+                    topNlist = retriever.Retrieve(5, key_name, key_weak, question)
                     if True:
-                    # if result:
                         # current_type_count += 1
                         key_question = key + ' : ' + question
                         item_key = {key_question: topNlist}
                         q_topK_map.update(item_key)
 
 
-    with open('top5_4weak.json', 'w', encoding='utf-8') as f:
+    with open('top5_4weak11.13.json', 'w', encoding='utf-8') as f:
         json.dump(q_topK_map, f, indent=4)
 
 
