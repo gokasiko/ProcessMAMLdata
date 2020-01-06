@@ -14,7 +14,7 @@ typelist_dict = {}
 for type in typelist:
     typelist_dict[type] = 0
 
-result_dict = []
+result_dict = {}
 
 with open("CSQA_result_question_type_count944k.json", "r", encoding='UTF-8') as CSQA_List:
     load_dict = json.load(CSQA_List)
@@ -27,9 +27,9 @@ with open("CSQA_result_question_type_count944k.json", "r", encoding='UTF-8') as 
                     if type in key:
                         type_name = type
                         typelist_dict[type] += 1
-                        count_order_name = "{0}{1}".format(type, typelist_dict[type])
-                        type_order_item = {count_order_name : quesion}
-                        result_dict.append(type_order_item)
+                        # count_order_name = "{0}{1}".format(type, typelist_dict[type])
+                        type_order_item = {questonkey : quesion}
+                        result_dict.update(type_order_item)
 
     print(typelist_dict)
 
@@ -39,5 +39,5 @@ with open("CSQA_result_question_type_count944k.json", "r", encoding='UTF-8') as 
     #     print(key, value[0], len(value))
     # print(allcount)
     # with open('CSQA_result.json', 'w') as f:
-    with open('CSQA_result_question_type_count944k_order.json', 'w') as f:
+    with open('CSQA_result_question_type_count944k_ordermap.json', 'w') as f:
         json.dump(result_dict, f, indent=2)
