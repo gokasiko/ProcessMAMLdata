@@ -21,13 +21,15 @@ with open("CSQA_result_question_type_count944k.json", "r", encoding='UTF-8') as 
     for key, value in load_dict.items():
         print(key)
         for item_key in value:
-            type_name = typelist[0]
-            for type in typelist:
-                if type in key:
-                    type_name = type
-                    typelist_dict[type] += 1
-                    count_order_name = "{0}{1}".format(type, typelist_dict[type])
-                    result_dict.append(count_order_name)
+            for questonkey, quesion in item_key.items():
+                type_name = typelist[0]
+                for type in typelist:
+                    if type in key:
+                        type_name = type
+                        typelist_dict[type] += 1
+                        count_order_name = "{0}{1}".format(type, typelist_dict[type])
+                        type_order_item = {count_order_name : quesion}
+                        result_dict.append(type_order_item)
 
     print(typelist_dict)
 
