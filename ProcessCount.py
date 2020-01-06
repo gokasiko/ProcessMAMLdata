@@ -10,15 +10,26 @@ typelist = ['Simple Question (Direct)_',
             'Comparative Reasoning (All)_'
             ]
 
+typelist_dict = {}
+for type in typelist:
+    typelist_dict[type] = 0
+
+result_dict = []
+
 with open("CSQA_result_question_type_count944k.json", "r", encoding='UTF-8') as CSQA_List:
     load_dict = json.load(CSQA_List)
     for key, value in load_dict.items():
         print(key)
+        for item_key in value:
+            type_name = typelist[0]
+            for type in typelist:
+                if type in key:
+                    type_name = type
+                    typelist_dict[type] += 1
+                    count_order_name = "{0}{1}".format(type, typelist_dict[type])
+                    result_dict.append(count_order_name)
 
-        type_name = typelist[0]
-        for type in typelist:
-            if type in key:
-                type_name = type
+    print(typelist_dict)
 
     # allcount = 0
     # for key, value in result_dict.items():
