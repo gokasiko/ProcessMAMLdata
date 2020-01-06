@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
 
+for i in range(0, 10):
+    print(i)
+
 typelist = ['Simple Question (Direct)_',
             'Verification (Boolean) (All)_',
             'Quantitative Reasoning (Count) (All)_',
@@ -14,12 +17,18 @@ typelist_dict = {}
 for type in typelist:
     typelist_dict[type] = 0
 
-result_dict = {}
+result_dict = []
 
 with open("CSQA_result_question_type_count944k.json", "r", encoding='UTF-8') as CSQA_List:
     load_dict = json.load(CSQA_List)
+    index = 0
+    end = 0
     for key, value in load_dict.items():
         print(key)
+        start = end
+        end = start + len(value)
+        print(start, end)
+        # print("all: ", len(value))
         for item_key in value:
             for questonkey, quesion in item_key.items():
                 type_name = typelist[0]
@@ -29,15 +38,15 @@ with open("CSQA_result_question_type_count944k.json", "r", encoding='UTF-8') as 
                         typelist_dict[type] += 1
                         # count_order_name = "{0}{1}".format(type, typelist_dict[type])
                         type_order_item = {questonkey : quesion}
-                        result_dict.update(type_order_item)
+                        result_dict.append(type_order_item)
 
     print(typelist_dict)
 
-    # allcount = 0
-    # for key, value in result_dict.items():
-    #     allcount += len(value)
-    #     print(key, value[0], len(value))
-    # print(allcount)
-    # with open('CSQA_result.json', 'w') as f:
-    with open('CSQA_result_question_type_count944k_ordermap.json', 'w') as f:
-        json.dump(result_dict, f, indent=2)
+    # # allcount = 0
+    # # for key, value in result_dict.items():
+    # #     allcount += len(value)
+    # #     print(key, value[0], len(value))
+    # # print(allcount)
+    # # with open('CSQA_result.json', 'w') as f:
+    # with open('CSQA_result_question_type_count944k_orderlist.json', 'w') as f:
+    #     json.dump(result_dict, f, indent=2)
